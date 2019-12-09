@@ -37,9 +37,10 @@ namespace SplineInterpolation
 
         static void Interpolation(double[] xArr, double[] yArr)
         {
-            var tridiagonalMatrix = new double[5, 4];
+            var n = xArr.Length - 1;
+            var tridiagonalMatrix = new double[n - 1, n - 2];
 
-            for (var i = 1; i < xArr.Length - 1; i++)
+            for (var i = 1; i < n; i++)
             {
                 for (var j = 0; j < tridiagonalMatrix.GetLength(1); j++)
                     tridiagonalMatrix[i - 1, j] = GetEssentialSpline(xArr, yArr, i)[j];
@@ -49,12 +50,35 @@ namespace SplineInterpolation
             var bArr = new double[tridiagonalMatrix.GetLength(0)];
             var dArr = new double[tridiagonalMatrix.GetLength(0)];
 
-            for (var i = 1; i < xArr.Length - 1; i++)
+            for (var i = 1; i < n; i++)
             {
                 bArr[i - 1] = Math.Round((yArr[i + 1] - yArr[i]) / (xArr[i + 1] - xArr[i]) - ((xArr[i + 1] - xArr[i]) / 3 * (cArr[i + 1] + 2 * cArr[i])), 3);
                 dArr[i - 1] = Math.Round((cArr[i + 1] - cArr[i]) / (3 * (xArr[i + 1] - xArr[i])), 3);
                 Console.WriteLine("f{0}(x) = {1} + {2}(x - {3}) + {4}(x - {3})^2 + {5}(x - {3})^3", i, yArr[i], bArr[i - 1], xArr[i], cArr[i], dArr[i - 1]);
             }
+
+            while (true)
+            {
+                Console.Write("Введите Х: ");
+                var input = double.Parse(Console.ReadLine());
+                if (input < xArr[1] || input > xArr[n])
+                {
+                    Console.WriteLine("Введенное значение не входит в интервал");
+                    continue;
+                }
+                for (var i = 1; i < n; i++)
+                {
+                    if (input >= xArr[i] && input < xArr[i + 1])
+                    {
+                        Console.WriteLine("Y(x) = {0}", GetY(xArr, yArr, cArr, bArr, dArr, input, i));
+                    }
+                }
+            }
+        }
+
+        static double GetY(double[] xArr, double[] yArr, double[] cArr, double[] bArr, double[] dArr, double x, int i)
+        {
+            return yArr[i] + bArr[i - 1] * (x - xArr[i]) + cArr[i] * ((x - xArr[i]) * (x - xArr[i])) + dArr[i - 1] * ((x - xArr[i]) * (x - xArr[i]) * (x - xArr[i]));
         }
 
         static double[] GetEssentialSpline(double[] xArr, double[] yArr, int i)
@@ -75,7 +99,7 @@ namespace SplineInterpolation
         static void Main(string[] args)
         {
             var xArr = new double[] { 0, 1, 1.2, 1.4, 1.6, 1.8, 2 };
-            var yArr = new double[] { 0, 0.9, 2, 3, 3.8, 5.1, 5.8 };
+            var yArr = new double[] { 0, 0.8, 2.2, 2.9, 4, 5.2, 5.8 };
             Interpolation(xArr, yArr);
             Console.ReadKey();
         }
